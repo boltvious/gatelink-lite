@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gatelink-lite": {
+      "command": "node",
+      "args": ["D:/gatelink-lite/mcp-server.cjs"],
+      "env": {
+        "GATELINK_LITE_WORKSPACE": "D:/your-project-here"
+      }
+    }
+  }
+}
