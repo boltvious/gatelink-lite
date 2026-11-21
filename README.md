@@ -23,13 +23,6 @@ Connect web AI assistants to your local VS Code workspace — **read-only, safe 
 | `get_workspace_info` | List workspace structure |
 | `list_tools` | List available tools |
 
-## What Lite CANNOT Do (kept in full version)
-
-- ❌ `write_file`, `edit_file`, `diff_file`
-- ❌ `execute_command`, `run_in_terminal`, `terminal_session`
-- ❌ `desktop_capture`, `attach_file`
-- ❌ Browser automation (click, type, navigate)
-
 That is intentional. Lite is for **reading**, not for giving AI control of your machine.
 
 ## Quick Start
