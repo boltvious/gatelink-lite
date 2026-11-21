@@ -93,10 +93,6 @@ See [`docs/LITE-vs-FULL.md`](docs/LITE-vs-FULL.md)
 | Desktop capture | ❌ | ✅ |
 | Browser automation | ❌ | ✅ |
 
-## Why This Exists
-
-Built as a portfolio + hiring asset — e.g. **Zyte Integrations Engineer** — where the job is to connect real systems, handle real APIs, and prove it works with real data, not just slides.
-
 ## Related
 
 - **kane-guard** — verifier that knows when to say no. Demo: https://youtu.be/Fnshh0MtSWU — https://github.com/boltvious/kane-guard
