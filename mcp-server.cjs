@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
- * gatelink-lite - MCP Server (READ-ONLY) v0.1.1
- * Fix: search_files ngerti glob, read_file ngerti folder
+ * gatelink-lite - MCP Server (READ-ONLY) v0.1.2
+ * Fix v0.1.2: ignore notifications (no id) — LangChain / Python MCP client
+ *   used to crash on `notifications/initialized` because we replied with
+ *   an error without an id. JSON-RPC: notifications MUST NOT get a response.
+ * Fix v0.1.1: search_files ngerti glob, read_file ngerti folder
  * Tools: read_file, search_files, search_code, get_workspace_info, list_tools
  */
 const fs = require('fs');
@@ -87,7 +90,11 @@ const TOOLS = [
 ];
 function handle(req) {
   const { id, method, params = {} } = req;
-  if (method === 'initialize') return { jsonrpc: '2.0', id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'gatelink-lite', version: '0.1.1' } } };
+  // FIX v0.1.2: notifications have no id -> MUST NOT reply.
+  // LangChain sends `notifications/initialized` after initialize.
+  // Old code replied with an error without id -> Python MCP parser crashed.
+  if (id === undefined || id === null) return null;
+  if (method === 'initialize') return { jsonrpc: '2.0', id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'gatelink-lite', version: '0.1.2' } } };
   if (method === 'tools/list') return { jsonrpc: '2.0', id, result: { tools: TOOLS } };
   if (method === 'tools/call') {
     const name = params.name; const args = params.arguments || {};
@@ -102,6 +109,8 @@ function handle(req) {
       return { jsonrpc: '2.0', id, result: { content: [{ type: 'text', text }] } };
     } catch (e) { return { jsonrpc: '2.0', id, error: { code: -32603, message: String(e.message || e) } }; }
   }
+  // Also ignore notifications that somehow carry an id-like shape but start with notifications/ or $/
+  if (typeof method === 'string' && (method.startsWith('notifications/') || method.startsWith('$/'))) return null;
   return { jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not found: ' + method } };
 }
 let buf = '';
@@ -112,7 +121,11 @@ process.stdin.on('data', chunk => {
   while ((idx = buf.indexOf('\n')) >= 0) {
     const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
     if (!line) continue;
-    try { const res = handle(JSON.parse(line)); process.stdout.write(JSON.stringify(res) + '\n'); }
+    try {
+      const req = JSON.parse(line);
+      const res = handle(req);
+      if (res !== null && res !== undefined) process.stdout.write(JSON.stringify(res) + '\n');
+    }
     catch (e) { process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: String(e.message || e) } }) + '\n'); }
   }
 });
